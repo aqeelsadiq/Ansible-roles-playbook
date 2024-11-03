@@ -1,0 +1,30 @@
+---
+- name: Install MySQL server
+  apt:
+    name: mysql-server
+    state: present
+
+- name: Start and enable MySQL service
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Set MySQL root password
+  mysql_user:
+    name: root
+    password: "{{ mysql_root_password }}"
+    host_all: yes
+    state: present
+
+- name: Create WordPress database
+  mysql_db:
+    name: "{{ mysql_wordpress_db }}"
+    state: present
+
+- name: Create WordPress user and grant permissions
+  mysql_user:
+    name: "{{ mysql_wordpress_user }}"
+    password: "{{ mysql_wordpress_password }}"
+    priv: "{{ mysql_wordpress_db }}.*:ALL"
+    state: present

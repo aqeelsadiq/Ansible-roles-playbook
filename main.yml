@@ -1,0 +1,16 @@
+---
+- name: Setup MySQL on the database server
+  hosts: db_server
+  become: yes
+  vars_files:
+    - vars/mysql.yml
+  roles:
+    - mysql
+
+- name: Setup WordPress on the web server
+  hosts: web_server
+  become: yes
+  vars_files:
+    - vars/wordpress.yml
+  roles:
+    - wordpress

@@ -1,0 +1,55 @@
+---
+- name: Install Apache, PHP, and other dependencies
+  apt:
+    name:
+      - apache2
+      - php
+      - php-mysql
+      - wget
+      - unzip
+    state: present
+
+- name: Start and enable Apache service
+  service:
+    name: apache2
+    state: started
+    enabled: yes
+
+- name: Download WordPress
+  get_url:
+    url: https://wordpress.org/latest.zip
+    dest: /tmp/latest.zip
+
+- name: Unzip WordPress
+  unarchive:
+    src: /tmp/latest.zip
+    dest: /var/www/html
+    remote_src: yes
+
+- name: Copy WordPress config
+  copy:
+    src: /var/www/html/wordpress/wp-config-sample.php
+    dest: /var/www/html/wordpress/wp-config.php
+
+- name: Configure WordPress with MySQL details
+  lineinfile:
+    path: /var/www/html/wordpress/wp-config.php
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: "define\\('DB_NAME', '.*'\\);", line: "define('DB_NAME', '{{ wordpress_db_name }}');" }
+    - { regexp: "define\\('DB_USER', '.*'\\);", line: "define('DB_USER', '{{ wordpress_db_user }}');" }
+    - { regexp: "define\\('DB_PASSWORD', '.*'\\);", line: "define('DB_PASSWORD', '{{ wordpress_db_password }}');" }
+    - { regexp: "define\\('DB_HOST', '.*'\\);", line: "define('DB_HOST', '{{ wordpress_db_host }}');" }
+
+- name: Set ownership and permissions for WordPress files
+  file:
+    path: /var/www/html/wordpress
+    owner: www-data
+    group: www-data
+    mode: "0755"
+    recurse: yes
+- name: Restart Apache2
+  service:
+    name: apache2
+    state: restarted
